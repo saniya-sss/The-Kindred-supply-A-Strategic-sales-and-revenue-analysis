@@ -9,7 +9,7 @@ select * from products;
 select * from shippers;
 select * from suppliers;
 
--- What is the average number of orders per customer? Are there high-value repeat customers?
+--1. What is the average number of orders per customer? Are there high-value repeat customers?
 select
 count(distinct OrderID) * 1.0 / count(distinct CustomerID) as avg_orders_per_customer
 from orders;
@@ -24,7 +24,7 @@ having count(o.OrderID) > 1 and sum(od.UnitPrice * od.Quantity - od.Discount) > 
 order by total_spent desc
 limit 10;
 
--- How do customer order patterns vary by city or country?
+-- 2.How do customer order patterns vary by city or country?
 select o.ShipCountry,
 count( distinct o.CustomerID) as num_customers,
 count(Distinct o.OrderID) as total_orders,
@@ -35,7 +35,7 @@ join order_details od on o.OrderID = od.OrderId
 group by o.ShipCountry
 order by total_spent desc;
 
--- Can we cluster customers based on total spend, order count, and preferred categories?
+-- 3.Can we cluster customers based on total spend, order count, and preferred categories?
 with CustomerSpend as
 (select o.CustomerID,
 sum(od.UnitPrice * od.Quantity) as total_spent
@@ -75,7 +75,7 @@ join CustomerOrderCount as coc on cs.CustomerID = coc.CustomerId
 left join RankedCategorySpend rcs on cs.CustomerID = rcs.CustomerID and rcs.rn = 1
 order by cs.CustomerID asc;
 
--- Which product categories or products contribute most to order revenue? 
+--4. Which product categories or products contribute most to order revenue? 
 select p.ProductID,
 p.ProductName,
 c.CategoryName,
@@ -86,7 +86,7 @@ join categories c on p.CategoryID = c.CategoryID
 group by p.ProductID,p.ProductName,c.CategoryName
 order by order_revenue desc;
 
- -- Are there any correlations between orders and customer location or product category?
+ -- 5.Are there any correlations between orders and customer location or product category?
 select ShipCountry,
 ShipCity,
 count(OrderID) as total_orders
@@ -94,7 +94,7 @@ from orders
 group by ShipCountry,ShipCity
 order by total_orders desc;
 
--- How frequently do different customer segments place orders?
+-- 6.How frequently do different customer segments place orders?
 select ShipVia,
 count(OrderID) as total_order
 from orders
@@ -117,7 +117,7 @@ from orders
 group by ShipVia,order_month
 order by total_order desc;
 
--- What is the geographic and title-wise distribution of employees?
+--7. What is the geographic and title-wise distribution of employees?
 select Country,
 City,
 Title,
@@ -126,7 +126,7 @@ from employees
 group by Country,City,Title
 order by count_employee desc;
 
--- What trends can we observe in hire dates across employee titles?
+--8. What trends can we observe in hire dates across employee titles?
 select
 Title,
 extract(year from HireDate) as hire_year,
@@ -135,7 +135,7 @@ from employees
 group by hire_year,Title
 order by hire_year,Title;
 
--- What patterns exist in employee title and courtesy title distributions?
+--9. What patterns exist in employee title and courtesy title distributions?
 SELECT    Title,   
 TitleOfCourtesy,  
  COUNT(*) AS count_of_employees
@@ -143,7 +143,7 @@ FROM    employees
 GROUP BY    Title, TitleOfCourtesy
 ORDER BY    Title, count_of_employees DESC;
 
--- Are there correlations between product pricing, stock levels, and sales performance?
+-- 10.Are there correlations between product pricing, stock levels, and sales performance?
 select p.ProductName,
 p.UnitPrice,
 p.UnitsInStock,
@@ -153,7 +153,7 @@ from products p join order_details od on p.ProductID = od.ProductID
 group by p.ProductName,p.UnitPrice,p.UnitsInStock
 order by TotalSales desc;
 
--- How does product demand change over months or seasons?
+-- 11.How does product demand change over months or seasons?
 select od.ProductID,
 extract(month from o.OrderDate) as order_month,
 sum(od.Quantity) as total_quantity
@@ -163,7 +163,7 @@ group by od.ProductID,
 extract(month from o.OrderDate)
 order by od.ProductID,order_month;
 
--- Can we identify anomalies in product sales or revenue performance?
+-- 12.Can we identify anomalies in product sales or revenue performance?
 with stats as(
 select ProductID,
 sum(UnitPrice * Quantity) as revenue,
@@ -185,7 +185,7 @@ join order_details od on o.OrderID = od.OrderID
  join stats s on od.ProductID = s.ProductID
 order by s.ProductID,o.OrderDate;
 
--- Are there any regional trends in supplier distribution and pricing?
+-- 13.Are there any regional trends in supplier distribution and pricing?
 with SupplierCounts as(
 select Country,
 count(*) as NumSupplier
@@ -207,7 +207,7 @@ from SupplierCounts sc
 join PricingByCountry pc on sc.Country = pc.Country
 order by pc.AvgProductPrice desc;
 
--- How are suppliers distributed across different product categories?
+--14. How are suppliers distributed across different product categories?
 select  s.Country,
 c.CategoryName,
 round(avg(p.UnitPrice),2) as avg_price,
@@ -218,7 +218,7 @@ join categories c on p.CategoryID = c.CategoryID
 group by s.Country,c.CategoryName
 order by s.Country,avg_price desc;
 
--- How do supplier pricing and categories relate across different regions?
+--15. How do supplier pricing and categories relate across different regions?
 select  s.Country,
 c.CategoryName,
 round(avg(p.UnitPrice),2) as avg_price,count(p.ProductID) as NumProducts from suppliers s
